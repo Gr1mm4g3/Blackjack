@@ -39,6 +39,45 @@ export default function Home() {
     console.log('Player action:', action);
   };
 
+  const handleDeal = () => {
+    // Placeholder for deal handling
+    console.log('Dealing cards...');
+  };
+
+  const handleNewGame = () => {
+    // Reset game state
+    setGameState(prevState => ({
+      ...prevState,
+      deck: [],
+      players: [
+        {
+          hands: [{ cards: [], bet: 0, isDoubledDown: false, isSplit: false, isComplete: false }],
+          chips: 1000,
+          isDealer: true,
+        },
+        {
+          hands: [{ cards: [], bet: 0, isDoubledDown: false, isSplit: false, isComplete: false }],
+          chips: 1000,
+          isDealer: false,
+        },
+      ],
+      currentPlayerIndex: 1,
+      currentHandIndex: 0,
+      phase: 'betting',
+      runningCount: 0,
+      trueCount: 0,
+    }));
+    console.log('Starting new game...');
+  };
+
+  const handleToggleCount = () => {
+    // Toggle count display
+    setGameState(prevState => ({
+      ...prevState,
+      showCount: !prevState.showCount,
+    }));
+  };
+
   return (
     <main className="min-h-screen bg-gray-900 p-4">
       <div className="container mx-auto">
@@ -50,6 +89,9 @@ export default function Home() {
           gameState={gameState}
           onPlaceBet={handlePlaceBet}
           onAction={handleAction}
+          onDeal={handleDeal}
+          onNewGame={handleNewGame}
+          onToggleCount={handleToggleCount}
         />
         
         <div className="mt-8 text-center text-white">

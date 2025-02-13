@@ -101,6 +101,21 @@ This document provides a chronological summary of all development sessions and c
    - Improved betting interface
    - Enhanced visual organization
 
+7. Added Game Controls:
+   - Created GameControls component (`/app/components/game/GameControls.tsx`):
+     - Deal button with conditional enabling
+     - New Game button for resetting the game
+     - Count toggle for showing/hiding card counting
+     - Settings button for future configuration
+     - Beautiful gradient buttons with hover effects
+     - Material icons for visual clarity
+   
+   - Updated GameBoard and Page components:
+     - Integrated game controls
+     - Added state handlers for all control actions
+     - Improved layout with proper spacing
+     - Enhanced visual hierarchy
+
 ## Current Status
 - Project structure established 
 - Core game types defined 
@@ -108,10 +123,11 @@ This document provides a chronological summary of all development sessions and c
 - First visual component created 
 - GameBoard component implemented
 - Hand components created and integrated 
+- Game controls added and functioning 
 - Ready to implement game logic and state management
 
 ## Next Steps
-- Add game control buttons
 - Set up game state management
 - Implement basic strategy logic
 - Add card counting features
+- Add settings functionality
