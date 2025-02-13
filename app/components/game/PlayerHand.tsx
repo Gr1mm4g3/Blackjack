@@ -30,8 +30,12 @@ export const PlayerHand: React.FC<PlayerHandProps> = ({
   onAction,
   className = '',
 }) => {
+  // Calculate hand value and bust status
   const { hard } = calculateHandValue(hand);
   const isBusted = hard > 21;
+
+  // Determine if actions should be allowed
+  const canAct = isActive && !isBusted && !hand.isComplete;
 
   return (
     <div className={`flex flex-col items-center ${className}`}>
@@ -42,18 +46,19 @@ export const PlayerHand: React.FC<PlayerHandProps> = ({
       `}>
         <Hand 
           hand={hand}
-          isActive={isActive}
+          isActive={isActive && !isBusted}
           showValue={true}
         />
       </div>
 
-      {/* Action Buttons */}
-      {isActive && !isBusted && !hand.isComplete && (
+      {/* Action Buttons - Only show if player can act */}
+      {canAct && (
         <div className="mt-8 flex gap-2">
           <ActionButton
             action="hit"
             onClick={() => onAction?.('hit')}
             isRecommended={suggestedAction === 'hit'}
+            disabled={isBusted}
           />
           <ActionButton
             action="stand"
@@ -84,9 +89,14 @@ export const PlayerHand: React.FC<PlayerHandProps> = ({
         </div>
       )}
 
-      {/* Win/Loss Indicator */}
-      {hand.isComplete && !isBusted && (
-        <div className="mt-4 text-2xl font-bold text-yellow-400">
+      {/* Game Outcome Indicators */}
+      {isBusted && (
+        <div className="mt-4 text-2xl font-bold text-red-500 animate-bounce">
+          Bust!
+        </div>
+      )}
+      {hand.isComplete && !isBusted && hand.winAmount && hand.winAmount > 0 && (
+        <div className="mt-4 text-2xl font-bold text-yellow-400 animate-bounce">
           Winner!
         </div>
       )}
@@ -99,38 +109,21 @@ const ActionButton: React.FC<{
   action: GameAction;
   onClick: () => void;
   isRecommended?: boolean;
-}> = ({ action, onClick, isRecommended }) => {
-  const baseStyles = `
-    px-4 py-2 rounded-lg font-bold text-white
-    transform transition-all duration-200
-    hover:scale-105 active:scale-95
-  `;
-
-  const getActionColor = () => {
-    if (isRecommended) return 'bg-yellow-500 hover:bg-yellow-600';
-    switch (action) {
-      case 'hit':
-        return 'bg-green-600 hover:bg-green-700';
-      case 'stand':
-        return 'bg-red-600 hover:bg-red-700';
-      case 'double':
-        return 'bg-blue-600 hover:bg-blue-700';
-      case 'split':
-        return 'bg-purple-600 hover:bg-purple-700';
-      case 'surrender':
-        return 'bg-gray-600 hover:bg-gray-700';
-      default:
-        return 'bg-gray-600 hover:bg-gray-700';
-    }
-  };
-
+  disabled?: boolean;
+}> = ({ action, onClick, isRecommended, disabled }) => {
   return (
     <button
       onClick={onClick}
+      disabled={disabled}
       className={`
-        ${baseStyles}
-        ${getActionColor()}
-        ${isRecommended ? 'ring-4 ring-yellow-300 ring-opacity-50' : ''}
+        px-4 py-2 rounded-lg
+        font-semibold text-sm
+        transition-all duration-300
+        ${isRecommended ? 'ring-2 ring-yellow-400 animate-pulse' : ''}
+        ${disabled
+          ? 'bg-gray-600 cursor-not-allowed opacity-50'
+          : 'bg-blue-600 hover:bg-blue-500 active:scale-95'
+        }
       `}
     >
       {action.charAt(0).toUpperCase() + action.slice(1)}

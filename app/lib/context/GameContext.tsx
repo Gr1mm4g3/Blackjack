@@ -19,11 +19,7 @@ type GameActionType =
 // Define the context type
 interface GameContextType {
   state: GameState;
-  placeBet: (amount: number) => void;
-  dealCards: () => void;
-  handlePlayerAction: (action: GameAction) => void;
-  startNewGame: () => void;
-  toggleCount: () => void;
+  dispatch: React.Dispatch<GameActionType>;
 }
 
 // Create context
@@ -86,28 +82,41 @@ function gameReducer(state: GameState, action: GameActionType): GameState {
       
       // Create and shuffle a new deck
       let deck = shuffle(createDeck());
-      const newHands: Hand[] = state.players.map(p => p.hands[0]).map(hand => ({
-        ...hand,
+      
+      // Reset hands but keep bets
+      const newHands: Hand[] = state.players.map(p => ({
         cards: [],
+        bet: p.hands[0].bet,
+        isDoubledDown: false,
+        isSplit: false,
+        isComplete: false,
       }));
 
       // Deal initial cards
       for (let i = 0; i < 2; i++) {
         newHands.forEach((hand, playerIndex) => {
+          if (deck.length === 0) {
+            deck = shuffle(createDeck()); // Reshuffle if needed
+          }
           const card = deck[0];
           deck = deck.slice(1);
           hand.cards.push({
             ...card,
-            isFaceUp: !(playerIndex === 0 && i === 1), // Dealer's second card is face down
+            // Dealer's second card is face down
+            isFaceUp: !(playerIndex === 0 && i === 1),
           });
         });
       }
 
-      // Update running count
+      // Calculate initial running count
       const runningCount = newHands
         .flatMap(h => h.cards)
         .filter(c => c.isFaceUp)
-        .reduce((count, card) => count + getCountValue(card), 0);
+        .reduce((count, card) => count + getCountValue(card), state.runningCount);
+
+      // Calculate true count (approximate decks remaining)
+      const decksRemaining = Math.max(1, deck.length / 52);
+      const trueCount = runningCount / decksRemaining;
 
       return {
         ...state,
@@ -118,7 +127,7 @@ function gameReducer(state: GameState, action: GameActionType): GameState {
         })),
         phase: 'playerAction',
         runningCount,
-        trueCount: runningCount / (deck.length / 52), // Approximate decks remaining
+        trueCount,
       };
     }
 
@@ -135,14 +144,25 @@ function gameReducer(state: GameState, action: GameActionType): GameState {
 
       switch (action.action) {
         case 'hit': {
+          // Don't allow hitting on completed or busted hands
+          const currentValue = calculateHandValue(newHand);
+          if (newHand.isComplete || currentValue.hard > 21) break;
+
+          if (newDeck.length === 0) {
+            newDeck = shuffle(createDeck());
+          }
+
+          // Draw new card
           const card = { ...newDeck[0], isFaceUp: true };
           newDeck = newDeck.slice(1);
           newHand.cards.push(card);
           newRunningCount += getCountValue(card);
 
+          // Check for bust after adding new card
           const { hard } = calculateHandValue(newHand);
           if (hard > 21) {
             newHand.isComplete = true;
+            newHand.winAmount = -newHand.bet; // Immediate loss on bust
             newPhase = 'dealerAction';
           }
           break;
@@ -157,6 +177,9 @@ function gameReducer(state: GameState, action: GameActionType): GameState {
         case 'double': {
           if (newHand.cards.length !== 2 || newChips < newHand.bet) break;
           
+          if (newDeck.length === 0) {
+            newDeck = shuffle(createDeck());
+          }
           const card = { ...newDeck[0], isFaceUp: true };
           newDeck = newDeck.slice(1);
           newHand.cards.push(card);
@@ -169,9 +192,11 @@ function gameReducer(state: GameState, action: GameActionType): GameState {
           newPhase = 'dealerAction';
           break;
         }
-
-        // Additional actions (split, surrender) will be implemented later
       }
+
+      // Calculate true count
+      const decksRemaining = Math.max(1, newDeck.length / 52);
+      const newTrueCount = newRunningCount / decksRemaining;
 
       return {
         ...state,
@@ -187,7 +212,7 @@ function gameReducer(state: GameState, action: GameActionType): GameState {
         ),
         phase: newPhase,
         runningCount: newRunningCount,
-        trueCount: newRunningCount / (newDeck.length / 52),
+        trueCount: newTrueCount,
       };
     }
 
@@ -214,32 +239,117 @@ function gameReducer(state: GameState, action: GameActionType): GameState {
       let newHand = { ...dealer.hands[0] };
       let newRunningCount = state.runningCount;
 
-      // Reveal hole card
-      newHand.cards = newHand.cards.map(card => ({ ...card, isFaceUp: true }));
-      newRunningCount += getCountValue(newHand.cards[1]); // Count the revealed hole card
+      // First, reveal the hole card by making a copy with isFaceUp set to true
+      newHand = {
+        ...newHand,
+        cards: newHand.cards.map(card => ({
+          ...card,
+          isFaceUp: true
+        }))
+      };
+
+      // Update running count for the revealed hole card
+      const holeCard = dealer.hands[0].cards[1];
+      if (!holeCard.isFaceUp) {
+        newRunningCount += getCountValue(holeCard);
+      }
+
+      // Calculate initial hand value
+      let handValue = calculateHandValue(newHand);
 
       // Dealer must hit on soft 17
-      while (true) {
-        const { soft, hard } = calculateHandValue(newHand);
-        if (hard > 21 || (hard >= 17 && soft >= 17)) break;
-        
-        const card = { ...newDeck[0], isFaceUp: true };
+      while (
+        handValue.hard < 17 || 
+        (handValue.hard === 17 && handValue.soft !== 17)
+      ) {
+        // Check if we need to reshuffle
+        if (newDeck.length === 0) {
+          newDeck = shuffle(createDeck());
+        }
+
+        // Draw and add new card
+        const newCard = {
+          ...newDeck[0],
+          isFaceUp: true,
+        };
         newDeck = newDeck.slice(1);
-        newHand.cards.push(card);
-        newRunningCount += getCountValue(card);
+        newHand.cards.push(newCard);
+
+        // Update running count
+        newRunningCount += getCountValue(newCard);
+
+        // Recalculate hand value
+        handValue = calculateHandValue(newHand);
       }
+
+      // Calculate true count
+      const decksRemaining = Math.max(1, newDeck.length / 52);
+      const newTrueCount = newRunningCount / decksRemaining;
+
+      // Update player hands with win/loss status
+      const player = state.players[1];
+      const updatedPlayer = { ...player };
+      
+      updatedPlayer.hands = player.hands.map(playerHand => {
+        const playerValue = calculateHandValue(playerHand);
+        let winAmount = 0;
+
+        // Skip already busted hands
+        if (playerValue.hard > 21) {
+          return { ...playerHand, isComplete: true, winAmount: -playerHand.bet };
+        }
+
+        // Check for blackjacks
+        const playerBlackjack = playerHand.cards.length === 2 && playerValue.soft === 21;
+        const dealerBlackjack = newHand.cards.length === 2 && handValue.soft === 21;
+
+        if (playerBlackjack) {
+          if (!dealerBlackjack) {
+            // Player blackjack pays 3:2
+            winAmount = Math.floor(playerHand.bet * 1.5);
+          }
+          // Push on matching blackjacks
+        } else if (dealerBlackjack) {
+          winAmount = -playerHand.bet;
+        } else if (handValue.hard > 21) {
+          // Dealer busts
+          winAmount = playerHand.bet;
+        } else {
+          // Compare hand values
+          const playerBest = playerValue.soft <= 21 ? playerValue.soft : playerValue.hard;
+          const dealerBest = handValue.soft <= 21 ? handValue.soft : handValue.hard;
+
+          if (playerBest > dealerBest) {
+            winAmount = playerHand.bet;
+          } else if (playerBest < dealerBest) {
+            winAmount = -playerHand.bet;
+          }
+          // Push results in winAmount staying 0
+        }
+
+        return {
+          ...playerHand,
+          isComplete: true,
+          winAmount,
+        };
+      });
+
+      // Update player chips based on wins/losses
+      updatedPlayer.chips += updatedPlayer.hands.reduce(
+        (total, hand) => total + (hand.winAmount || 0), 
+        0
+      );
 
       return {
         ...state,
         deck: newDeck,
-        players: state.players.map((p, i) => 
-          i === 0
-            ? { ...p, hands: [newHand] }
-            : p
-        ),
+        players: [
+          { ...dealer, hands: [newHand] },
+          updatedPlayer,
+        ],
         phase: 'payout',
         runningCount: newRunningCount,
-        trueCount: newRunningCount / (newDeck.length / 52),
+        trueCount: newTrueCount,
       };
     }
 
@@ -250,45 +360,23 @@ function gameReducer(state: GameState, action: GameActionType): GameState {
 
 // Provider component
 export function GameProvider({ children }: { children: ReactNode }) {
-  const [state, dispatch] = useReducer(gameReducer, initialState);
+  const [state, dispatch] = useReducer(gameReducer, {
+    ...initialState,
+    deck: shuffle(createDeck()),
+  });
 
-  const placeBet = (amount: number) => {
-    dispatch({ type: 'PLACE_BET', amount });
-  };
-
-  const dealCards = () => {
-    dispatch({ type: 'DEAL_CARDS' });
-  };
-
-  const handlePlayerAction = (action: GameAction) => {
-    dispatch({ type: 'PLAYER_ACTION', action });
-  };
-
-  const startNewGame = () => {
-    dispatch({ type: 'NEW_GAME' });
-  };
-
-  const toggleCount = () => {
-    dispatch({ type: 'TOGGLE_COUNT' });
-  };
-
-  const value = {
-    state,
-    placeBet,
-    dealCards,
-    handlePlayerAction,
-    startNewGame,
-    toggleCount,
-  };
-
-  return <GameContext.Provider value={value}>{children}</GameContext.Provider>;
+  return (
+    <GameContext.Provider value={{ state, dispatch }}>
+      {children}
+    </GameContext.Provider>
+  );
 }
 
 // Custom hook for using the game context
-export function useGame() {
+export function useGameContext() {
   const context = useContext(GameContext);
   if (context === undefined) {
-    throw new Error('useGame must be used within a GameProvider');
+    throw new Error('useGameContext must be used within a GameProvider');
   }
   return context;
 }

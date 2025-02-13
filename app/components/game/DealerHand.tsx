@@ -37,11 +37,6 @@ export const DealerHand: React.FC<DealerHandProps> = ({
           isActive={isDealing}
         />
       </div>
-      
-      {/* Must Hit on Soft 17 Rule Indicator */}
-      <div className="absolute top-0 right-4 text-white/60 text-sm">
-        Dealer Must Hit on Soft 17
-      </div>
     </div>
   );
 };

@@ -1,127 +1,87 @@
-# Blackjack Training Game Roadmap
+# Blackjack Trainer Roadmap
 
-## Project Overview
-An interactive Blackjack game that teaches players perfect Basic Strategy through visual gameplay and real-time feedback. The game will simulate a real casino experience while providing educational guidance to help players make optimal decisions.
+## Phase 1: Project Setup and Core Infrastructure 
+- [x] Initialize Next.js project with TypeScript
+- [x] Set up TailwindCSS
+- [x] Create project structure
+- [x] Define core types and interfaces
+- [x] Set up documentation (README.md, ROADMAP.md)
 
-## Technology Stack
+## Phase 2: Basic Game Components 
+- [x] Create game board layout
+- [x] Implement card components
+- [x] Create dealer hand component
+- [x] Create player hand component
+- [x] Add betting interface
+- [x] Implement game controls (Deal, New Game, etc.)
 
-### Frontend
-- **Next.js** - React framework for building the user interface
-- **TailwindCSS** - For styling and responsive design
-- **React DnD** (optional) - For drag-and-drop card interactions
-- **Canvas/SVG** - For card animations and visual effects
+## Phase 3: Game Implementation (In Progress)
+- [ ] Implement core game flow
+  - [x] Card dealing logic
+  - [x] Player actions (Hit, Stand, Double)
+  - [ ] Dealer play logic
+  - [ ] Win/loss determination
+  - [ ] Payout handling
+- [ ] Add game animations
+  - [ ] Card dealing animations
+  - [ ] Action feedback animations
+  - [ ] Win/loss animations
+- [ ] Implement proper error handling
+  - [ ] Invalid action prevention
+  - [ ] Edge case handling
+  - [ ] Error messages
 
-### Backend
-- **Node.js** - Runtime environment
-- **TypeScript** - For type safety and better development experience
-- **Jest** - For unit testing
-- **ESLint/Prettier** - Code formatting and linting
+## Phase 4: Basic Strategy Implementation
+- [ ] Create basic strategy engine
+- [ ] Implement strategy lookup tables
+- [ ] Add hint system
+- [ ] Create strategy visualization
+- [ ] Add decision feedback
+- [ ] Track player performance
 
-### State Management
-- **React Context API** - For global state management
-- **Local Storage** - For persisting game statistics and user preferences
+## Phase 5: Advanced Features
+- [ ] Implement card counting training
+  - [ ] Running count display
+  - [ ] True count calculation
+  - [ ] Betting recommendations
+- [ ] Add split functionality
+  - [ ] Handle multiple hands
+  - [ ] Update UI for split hands
+  - [ ] Implement split-specific rules
+- [ ] Add surrender option
+- [ ] Implement insurance
 
-## Development Phases
+## Phase 6: Training Features
+- [ ] Create basic strategy drill mode
+- [ ] Add card counting practice mode
+- [ ] Implement progress tracking
+- [ ] Add performance statistics
+- [ ] Create achievement system
 
-### Phase 1: Core Game Setup (Foundation)
-- [ ] Project initialization with Next.js and TailwindCSS
-- [ ] Basic project structure and component architecture
-- [ ] Card deck implementation (52-card standard deck)
-- [ ] Basic game logic (dealing, scoring)
-- [ ] Basic UI components (cards, chips, buttons)
+## Phase 7: UI/UX Enhancements
+- [ ] Add animations for card dealing
+- [ ] Improve betting chip animations
+- [ ] Add sound effects
+- [ ] Create responsive design for mobile
+- [ ] Add dark/light theme support
 
-### Phase 2: Game Mechanics Implementation
-- [ ] Player actions (Hit, Stand, Double Down)
-- [ ] Dealer logic and automation
-- [ ] Betting system
-- [ ] Split functionality
-- [ ] Insurance betting
-- [ ] Win/loss detection and payout calculation
+## Phase 8: Settings and Customization
+- [ ] Add game rules configuration
+- [ ] Implement deck number selection
+- [ ] Add practice mode settings
+- [ ] Create custom strategy options
+- [ ] Add user preferences storage
 
-### Phase 3: Basic Strategy Implementation
-- [ ] Basic Strategy chart implementation
-- [ ] Decision suggestion system
-- [ ] Real-time feedback on player decisions
-- [ ] Strategy deviation tracking
-- [ ] Performance statistics
-
-### Phase 4: Advanced Features
-- [ ] Multiple player positions
-- [ ] Advanced betting options
-- [ ] Hand history tracking
-- [ ] Strategy practice mode
-- [ ] Custom table rules configuration
-- [ ] Performance analytics dashboard
-
-### Phase 5: Visual and UX Enhancement
-- [ ] Professional card and chip designs
-- [ ] Smooth animations and transitions
-- [ ] Sound effects and background music
-- [ ] Responsive design for all devices
-- [ ] Theme customization options
-
-### Phase 6: Educational Features
-- [ ] Interactive Basic Strategy tutorial
-- [ ] Situation-specific tips and explanations
-- [ ] Progress tracking system
-- [ ] Achievement/certification system
-- [ ] Strategy drill exercises
-
-### Phase 7: Card Counting Implementation
-- [ ] Real-time card counting display option
-- [ ] Multiple card counting systems implementation:
-  - Hi-Lo system
-  - Hi-Opt I & II
-  - Omega II
-  - Zen Count
-  - Red 7
-- [ ] True count calculation (accounting for multiple decks)
-- [ ] Basic Strategy deviations based on count
-- [ ] Betting recommendations based on count
-- [ ] Interactive card counting tutorial
-- [ ] Practice exercises for mental counting
-- [ ] Count verification system
-- [ ] Performance metrics for counting accuracy
-- [ ] Customizable count display options
-
-### Phase 8: Polish and Optimization
-- [ ] Performance optimization
-- [ ] Code refactoring and cleanup
-- [ ] Comprehensive testing
-- [ ] Bug fixes and UX improvements
-- [ ] Documentation updates
+## Phase 9: Polish and Optimization
+- [ ] Optimize performance
+- [ ] Add error handling
+- [ ] Improve accessibility
+- [ ] Add loading states
+- [ ] Implement proper error boundaries
 
 ## Future Enhancements
-- Multiplayer support
-- AI opponents with different playing styles
-- Virtual currency system
-- Tournament mode
-- Mobile app version
-- Advanced strategy training (card counting, etc.)
-
-## Success Metrics
-- Player decision accuracy improvement
-- Time spent in training mode
-- Number of hands played
-- Strategy retention rate
-- User engagement metrics
-- User satisfaction surveys
-
-## Timeline
-- Phase 1: 1-2 weeks
-- Phase 2: 2-3 weeks
-- Phase 3: 2-3 weeks
-- Phase 4: 2-3 weeks
-- Phase 5: 1-2 weeks
-- Phase 6: 2-3 weeks
-- Phase 7: 2-3 weeks
-- Phase 8: 1-2 weeks
-
-Total estimated timeline: 13-21 weeks
-
-## Notes
-- Each phase will include comprehensive testing
-- Documentation will be maintained throughout development
-- Regular code reviews and refactoring sessions
-- User feedback will be incorporated throughout development
-- Accessibility features will be implemented across all phases
+- [ ] Add multiplayer support
+- [ ] Create leaderboards
+- [ ] Add social sharing
+- [ ] Implement save/load game state
+- [ ] Add advanced statistics and analysis

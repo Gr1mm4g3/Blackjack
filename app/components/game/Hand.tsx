@@ -61,13 +61,6 @@ export const Hand: React.FC<HandProps> = ({
         </div>
       )}
 
-      {/* Bet Amount */}
-      {hand.bet > 0 && (
-        <div className="absolute -bottom-16 left-1/2 transform -translate-x-1/2 text-white">
-          Bet: ${hand.bet}
-        </div>
-      )}
-
       {/* Split/Double Indicators */}
       {hand.isDoubledDown && (
         <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 text-yellow-400 font-bold">

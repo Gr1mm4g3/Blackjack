@@ -82,13 +82,9 @@ export default function Home() {
 
   return (
     <GameProvider>
-      <main className="min-h-screen bg-gray-900 p-4">
-        <div className="container mx-auto">
-          <h1 className="text-4xl font-bold text-white text-center mb-8">
-            Blackjack Trainer
-          </h1>
-          
-          <GameBoard
+      <main className="flex min-h-screen flex-col items-center justify-between p-24 bg-green-800">
+        <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm">
+          <GameBoard 
             gameState={gameState}
             onPlaceBet={handlePlaceBet}
             onAction={handleAction}
@@ -96,13 +92,6 @@ export default function Home() {
             onNewGame={handleNewGame}
             onToggleCount={handleToggleCount}
           />
-          <GameTable />
-          
-          <div className="mt-8 text-center text-white">
-            <p className="text-sm opacity-70">
-              Learn perfect basic strategy and card counting
-            </p>
-          </div>
         </div>
       </main>
     </GameProvider>
