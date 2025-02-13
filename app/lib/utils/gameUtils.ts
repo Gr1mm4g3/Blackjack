@@ -6,7 +6,7 @@
 import { Card, Hand } from '../types/game';
 
 // Card suits and ranks
-const SUITS = ['hearts', 'diamonds', 'clubs', 'spades'] as const;
+const SUITS = ['♥', '♦', '♣', '♠'] as const;
 const RANKS = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'] as const;
 
 /**

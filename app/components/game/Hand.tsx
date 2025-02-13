@@ -13,6 +13,7 @@ interface HandProps {
   hand: HandType;
   isActive?: boolean;
   showValue?: boolean;
+  isDealing?: boolean;
   className?: string;
 }
 
@@ -20,6 +21,7 @@ export const Hand: React.FC<HandProps> = ({
   hand,
   isActive = false,
   showValue = true,
+  isDealing = false,
   className = '',
 }) => {
   const { soft, hard } = calculateHandValue(hand);
@@ -41,7 +43,11 @@ export const Hand: React.FC<HandProps> = ({
             `}
             style={{ zIndex: index }}
           >
-            <Card card={card} />
+            <Card 
+              card={card}
+              index={index}
+              isDealing={isDealing}
+            />
           </div>
         ))}
       </div>
@@ -54,6 +60,8 @@ export const Hand: React.FC<HandProps> = ({
             px-3 py-1 rounded-full text-sm font-bold
             ${isBusted ? 'bg-red-600' : 'bg-black/50'} 
             text-white
+            transition-opacity duration-500
+            ${isDealing ? 'opacity-0' : 'opacity-100'}
           `}
         >
           {displayValue}

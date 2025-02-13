@@ -4,7 +4,7 @@
  * Includes the felt table, betting areas, and card positions
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 import { GameAction } from '@/app/lib/types/game';
 import DealerHand from './DealerHand';
 import PlayerHand from './PlayerHand';
@@ -14,9 +14,12 @@ import { useGameContext } from '@/app/lib/context/GameContext';
 
 export const GameBoard: React.FC = () => {
   const { state: gameState, dispatch } = useGameContext();
-  
+  const [isDealing, setIsDealing] = useState(false);
+
+  // Get player and dealer from game state
   const dealer = gameState.players.find(p => p.isDealer);
   const player = gameState.players.find(p => !p.isDealer);
+  const currentHand = player.hands[gameState.currentHandIndex];
 
   // Handle dealer's turn
   React.useEffect(() => {
@@ -31,29 +34,12 @@ export const GameBoard: React.FC = () => {
 
   if (!dealer || !player) return null;
 
-  const currentHand = player.hands[gameState.currentHandIndex];
-  const canSplit = currentHand?.cards.length === 2 && 
-    currentHand.cards[0].rank === currentHand.cards[1].rank &&
-    player.chips >= currentHand.bet;
-  const canDoubleDown = currentHand?.cards.length === 2 && 
-    player.chips >= currentHand.bet;
-  const canSurrender = currentHand?.cards.length === 2 && 
-    gameState.phase === 'playerAction';
-  
-  // Can only deal when in betting phase and a bet has been placed
-  const canDeal = gameState.phase === 'betting' && 
-    player.hands.some(hand => hand.bet > 0);
-
-  const handlePlaceBet = (amount: number) => {
-    dispatch({ type: 'PLACE_BET', amount });
-  };
-
-  const handleAction = (action: GameAction) => {
-    dispatch({ type: 'PLAYER_ACTION', action });
-  };
-
+  // Action handlers
   const handleDeal = () => {
+    setIsDealing(true);
     dispatch({ type: 'DEAL_CARDS' });
+    // Reset dealing state after animation completes
+    setTimeout(() => setIsDealing(false), 1000);
   };
 
   const handleNewGame = () => {
@@ -63,6 +49,28 @@ export const GameBoard: React.FC = () => {
   const handleToggleCount = () => {
     dispatch({ type: 'TOGGLE_COUNT' });
   };
+
+  const handlePlaceBet = (amount: number) => {
+    dispatch({ type: 'PLACE_BET', amount });
+  };
+
+  const handleAction = (action: GameAction) => {
+    if (action === 'hit') {
+      setIsDealing(true);
+      setTimeout(() => setIsDealing(false), 500);
+    }
+    dispatch({ type: 'PLAYER_ACTION', action });
+  };
+
+  // Game state checks
+  const canDeal = gameState.phase === 'betting' && currentHand.bet >= gameState.minimumBet;
+  const canSplit = currentHand?.cards.length === 2 && 
+    currentHand.cards[0].rank === currentHand.cards[1].rank &&
+    player.chips >= currentHand.bet;
+  const canDoubleDown = currentHand?.cards.length === 2 && 
+    player.chips >= currentHand.bet;
+  const canSurrender = currentHand?.cards.length === 2 && 
+    gameState.phase === 'playerAction';
 
   // Helper function to get chip styling based on amount
   const getChipStyle = (amount: number): string => {
@@ -145,7 +153,7 @@ export const GameBoard: React.FC = () => {
         </div>
         <DealerHand
           hand={dealer.hands[0]}
-          isDealing={gameState.phase === 'dealing'}
+          isDealing={isDealing}
           showHoleCard={gameState.phase === 'dealerAction' || gameState.phase === 'payout'}
         />
       </div>
@@ -155,6 +163,7 @@ export const GameBoard: React.FC = () => {
         <PlayerHand
           hand={currentHand}
           isActive={gameState.phase === 'playerAction'}
+          isDealing={isDealing}
           canSplit={canSplit}
           canDoubleDown={canDoubleDown}
           canSurrender={canSurrender}

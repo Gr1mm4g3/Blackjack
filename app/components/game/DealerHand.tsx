@@ -10,19 +10,25 @@ import Hand from './Hand';
 
 interface DealerHandProps {
   hand: HandType;
-  isDealing: boolean;
-  showHoleCard: boolean;
+  isDealing?: boolean;
+  showHoleCard?: boolean;
   className?: string;
 }
 
 export const DealerHand: React.FC<DealerHandProps> = ({
   hand,
-  isDealing,
-  showHoleCard,
+  isDealing = false,
+  showHoleCard = false,
   className = '',
 }) => {
-  // In Blackjack, dealer's hand value is only shown when hole card is revealed
-  const showValue = showHoleCard;
+  // Create a copy of the hand with the hole card face down if needed
+  const displayHand = {
+    ...hand,
+    cards: hand.cards.map((card, index) => ({
+      ...card,
+      isFaceUp: index === 0 || showHoleCard,
+    })),
+  };
 
   return (
     <div className={`flex flex-col items-center ${className}`}>
@@ -32,9 +38,9 @@ export const DealerHand: React.FC<DealerHandProps> = ({
         ${isDealing ? 'scale-105' : 'scale-100'}
       `}>
         <Hand 
-          hand={hand}
-          showValue={showValue}
-          isActive={isDealing}
+          hand={displayHand}
+          isDealing={isDealing}
+          showValue={showHoleCard}
         />
       </div>
     </div>
