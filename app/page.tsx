@@ -1,7 +1,9 @@
 'use client';
 
 import { useState } from 'react';
+import { GameProvider } from './lib/context/GameContext';
 import GameBoard from './components/game/GameBoard';
+import GameTable from './components/game/GameTable';
 import { GameState, GameAction } from './lib/types/game';
 
 export default function Home() {
@@ -79,27 +81,30 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen bg-gray-900 p-4">
-      <div className="container mx-auto">
-        <h1 className="text-4xl font-bold text-white text-center mb-8">
-          Blackjack Trainer
-        </h1>
-        
-        <GameBoard
-          gameState={gameState}
-          onPlaceBet={handlePlaceBet}
-          onAction={handleAction}
-          onDeal={handleDeal}
-          onNewGame={handleNewGame}
-          onToggleCount={handleToggleCount}
-        />
-        
-        <div className="mt-8 text-center text-white">
-          <p className="text-sm opacity-70">
-            Learn perfect basic strategy and card counting
-          </p>
+    <GameProvider>
+      <main className="min-h-screen bg-gray-900 p-4">
+        <div className="container mx-auto">
+          <h1 className="text-4xl font-bold text-white text-center mb-8">
+            Blackjack Trainer
+          </h1>
+          
+          <GameBoard
+            gameState={gameState}
+            onPlaceBet={handlePlaceBet}
+            onAction={handleAction}
+            onDeal={handleDeal}
+            onNewGame={handleNewGame}
+            onToggleCount={handleToggleCount}
+          />
+          <GameTable />
+          
+          <div className="mt-8 text-center text-white">
+            <p className="text-sm opacity-70">
+              Learn perfect basic strategy and card counting
+            </p>
+          </div>
         </div>
-      </div>
-    </main>
+      </main>
+    </GameProvider>
   );
 }

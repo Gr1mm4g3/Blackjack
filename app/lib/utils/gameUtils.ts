@@ -1,95 +1,139 @@
 /**
- * Utility functions for the Blackjack game
+ * Game Utilities
+ * Helper functions for managing cards, deck, and game calculations
  */
 
-import { Card, Rank, Suit, Hand } from '../types/game';
+import { Card, Hand } from '../types/game';
+
+// Card suits and ranks
+const SUITS = ['hearts', 'diamonds', 'clubs', 'spades'] as const;
+const RANKS = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'] as const;
 
 /**
- * Creates a new deck of cards
- * @returns Array of Card objects
+ * Creates a new deck of 52 cards
  */
-export const createDeck = (): Card[] => {
-  const suits: Suit[] = ['hearts', 'diamonds', 'clubs', 'spades'];
-  const ranks: Rank[] = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+export function createDeck(): Card[] {
   const deck: Card[] = [];
-
-  for (const suit of suits) {
-    for (const rank of ranks) {
-      deck.push({ suit, rank, isFaceUp: false });
+  for (const suit of SUITS) {
+    for (const rank of RANKS) {
+      deck.push({
+        suit,
+        rank,
+        isFaceUp: true,
+      });
     }
   }
-
   return deck;
-};
+}
 
 /**
  * Shuffles an array using the Fisher-Yates algorithm
- * @param array Array to shuffle
- * @returns Shuffled array
  */
-export const shuffle = <T>(array: T[]): T[] => {
+export function shuffle<T>(array: T[]): T[] {
   const newArray = [...array];
   for (let i = newArray.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
   }
   return newArray;
-};
+}
 
 /**
- * Calculates the value of a hand
- * @param hand Hand to calculate value for
- * @returns Object containing soft and hard values
+ * Gets the numerical value of a card
  */
-export const calculateHandValue = (hand: Hand): { soft: number; hard: number } => {
-  let soft = 0;
-  let aces = 0;
+export function getCardValue(rank: Card['rank']): number[] {
+  switch (rank) {
+    case 'A':
+      return [1, 11];
+    case 'K':
+    case 'Q':
+    case 'J':
+      return [10];
+    default:
+      return [parseInt(rank)];
+  }
+}
 
-  for (const card of hand.cards) {
-    if (!card.isFaceUp) continue;
+/**
+ * Calculates the value of a hand, considering aces
+ */
+export function calculateHandValue(hand: Hand): { soft: number; hard: number } {
+  const cards = hand.cards.filter(card => card.isFaceUp);
+  let hasAce = false;
+  let total = 0;
 
+  for (const card of cards) {
+    const values = getCardValue(card.rank);
     if (card.rank === 'A') {
-      aces += 1;
-      soft += 11;
-    } else if (['K', 'Q', 'J'].includes(card.rank)) {
-      soft += 10;
-    } else {
-      soft += parseInt(card.rank);
+      hasAce = true;
     }
+    total += values[0];
   }
 
-  // Convert aces from 11 to 1 as needed
-  let hard = soft;
-  while (hard > 21 && aces > 0) {
-    hard -= 10;
-    aces -= 1;
-  }
+  // Calculate soft total if we have an ace
+  const soft = hasAce && total + 10 <= 21 ? total + 10 : total;
 
-  return { soft, hard };
-};
+  return {
+    soft,
+    hard: total,
+  };
+}
 
 /**
- * Updates the running count based on revealed cards
- * @param card Card to count
- * @returns Count value for the card
+ * Gets the Hi-Lo count value of a card
  */
-export const getCountValue = (card: Card): number => {
+export function getCountValue(card: Card): number {
   if (!card.isFaceUp) return 0;
-  
-  const highCards = ['10', 'J', 'Q', 'K', 'A'];
-  const lowCards = ['2', '3', '4', '5', '6'];
-  
-  if (highCards.includes(card.rank)) return -1;
-  if (lowCards.includes(card.rank)) return 1;
+
+  const value = getCardValue(card.rank)[0];
+  if (value >= 2 && value <= 6) return 1;
+  if (value >= 10 || card.rank === 'A') return -1;
   return 0;
-};
+}
 
 /**
- * Calculates the true count
- * @param runningCount Current running count
- * @param decksRemaining Number of decks remaining
- * @returns True count value
+ * Determines if a hand can be split
  */
-export const calculateTrueCount = (runningCount: number, decksRemaining: number): number => {
-  return Math.round((runningCount / decksRemaining) * 2) / 2; // Round to nearest 0.5
-};
+export function canSplit(hand: Hand): boolean {
+  return (
+    hand.cards.length === 2 &&
+    getCardValue(hand.cards[0].rank)[0] === getCardValue(hand.cards[1].rank)[0]
+  );
+}
+
+/**
+ * Determines if a hand is a blackjack
+ */
+export function isBlackjack(hand: Hand): boolean {
+  return (
+    hand.cards.length === 2 &&
+    calculateHandValue(hand).soft === 21
+  );
+}
+
+/**
+ * Determines the winner between two hands
+ * Returns: 1 if hand1 wins, -1 if hand2 wins, 0 if push
+ */
+export function determineWinner(hand1: Hand, hand2: Hand): number {
+  const value1 = calculateHandValue(hand1);
+  const value2 = calculateHandValue(hand2);
+
+  const total1 = value1.soft <= 21 ? value1.soft : value1.hard;
+  const total2 = value2.soft <= 21 ? value2.soft : value2.hard;
+
+  if (total1 > 21) return -1;
+  if (total2 > 21) return 1;
+  if (total1 === total2) return 0;
+  return total1 > total2 ? 1 : -1;
+}
+
+/**
+ * Calculates the payout for a winning hand
+ */
+export function calculatePayout(hand: Hand, isBlackjack: boolean): number {
+  if (isBlackjack) {
+    return hand.bet * 1.5; // Blackjack pays 3:2
+  }
+  return hand.bet; // Normal win pays 1:1
+}
